@@ -1,7 +1,8 @@
 import h5py
 import numpy as np 
 import matplotlib.pyplot as plt
-from utilities import load_dataset, show_img
+import scipy
+from PIL import Image
 
 #load data sets
 #train_set_x, test_set_x (of shape (number of examples, 64, 64, 3))
@@ -56,8 +57,8 @@ def sigmoid(z):
     return 1/(1 + np.exp(-z))
 
 #gradient descent
-num_iters = 1000
-learning_rate = 0.005
+num_iters = 2000
+learning_rate = 0.009
 costs = []
 
 for i in range(num_iters):
@@ -70,11 +71,10 @@ for i in range(num_iters):
     w = w - learning_rate*dw
     b = b - learning_rate*db
 
-    if (i%100):
+    if (i%100 == 0):
         cost = - 1 / m_train * np.sum(train_set_y * np.log(a).T + (1-train_set_y) * np.log(1-a).T)
-        costs.append(cost) 
+        costs.append(cost)  
 
-print(costs)  
 
 costs = np.squeeze(costs)
 plt.plot(costs)
@@ -83,5 +83,26 @@ plt.ylabel('iterations (per 100)')
 plt.title('learning rate = ' + str(learning_rate))
 plt.show()
 
+#accuracy
+def accuracy(set_x, set_y):
+        z = np.dot(w.T, set_x) + b
+        a = sigmoid(z)
+        a = np.squeeze(a)
+        y_predict = (a > 0.5).astype(float)
+        accuracy = (1 - np.sum(abs(y_predict - set_y)) / (set_y.size)) * 100
+        return accuracy
 
+print("train accuracy: ", accuracy(train_set_x, train_set_y))
+print("test accuracy: ", accuracy(test_set_x, test_set_y))
 
+#predict an image
+fname = "cat2.jpg"
+#image = np.array(ndimage.imread(fname, flatten=False))
+image = np.array(plt.imread(fname))
+#my_image = scipy.misc.imresize(image, size=(64, 64)).reshape((1, -1)).T
+my_image = np.array(Image.fromarray(image).resize(size=(64, 64))).reshape((1, -1)).T
+
+if (accuracy(my_image, np.array([1])) == 100.0):
+        print("picture prediction: Good")
+else:
+        print("picture prediction: Bad")
